@@ -3,6 +3,7 @@ using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
@@ -19,17 +20,27 @@ namespace Business.Concrete
     public class ProductManager : IProductService
     {
         IProductDal _productDal;
-
-        public ProductManager(IProductDal productDal)
+        ICategoryService _categoryService;
+        public ProductManager(IProductDal productDal, ICategoryService categoryService)
         {
             _productDal = productDal;
+            _categoryService = categoryService;
         }
+
 
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
+            IResult result = BusinessRules.Run(CheckIfProductNameExists(product.ProductName),
+                CheckIfProductCountOfCategoryCorrect(product.CategoryId),CheckIfCategoryLimitExeced());
+
+            if (result != null) // kurala uymayan durum 
+            {
+                return result;
+            }
             _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
+
         }
 
         public IDataResult<List<Product>> GetAll()
@@ -57,5 +68,44 @@ namespace Business.Concrete
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
         }
 
+        [ValidationAspect(typeof(ProductValidator))]
+        public IResult Update(Product product)
+        {
+            var result = _productDal.GetAll(p => p.CategoryId == product.CategoryId).Count;
+            if (result >= 10)
+            {
+                new ErrorResult(Messages.ProductCountOfCategoryError);
+            }
+            throw new NotImplementedException();
+        }
+
+        private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
+        {
+            //select count(*) from products where categoryId = 1 alttaki kod bunu çalıştırır.
+            var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count; // arka planda linq query oluşturur ve veritabanına o query'i yollar
+            if (result >= 10)
+            {
+                new ErrorResult(Messages.ProductCountOfCategoryError);
+            }
+            return new SuccessResult();
+        }
+        private IResult CheckIfProductNameExists(string productName)
+        {
+            var result = _productDal.GetAll(p => p.ProductName == productName).Any();
+            if (result)
+            {
+                new ErrorResult(Messages.ProductNameAlreadyExists);
+            }
+            return new SuccessResult();
+        }
+        private IResult CheckIfCategoryLimitExeced()
+        {
+            var result = _categoryService.GetAll();
+            if (result.Data.Count > 15)
+            {
+                new ErrorResult(Messages.CategoryLimitExeced);
+            }
+            return new SuccessResult();
+        }
     }
 }
