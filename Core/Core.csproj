@@ -12,6 +12,7 @@
     <PackageReference Include="Autofac.Extras.DynamicProxy" Version="7.1.0" />
     <PackageReference Include="FluentValidation" Version="11.5.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.8" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.31.0" />
   </ItemGroup>
 
 </Project>

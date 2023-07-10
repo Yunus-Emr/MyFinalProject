@@ -1,4 +1,4 @@
-﻿using Core.Entities;
+﻿using Core.Entities.Abstract;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace Core.DataAccess
     // class : Referans tip 
     // IEntity: IEntity olabilir veya IEntity iplemente eden bir nesne olabilir
     // new() : new'lenebilir olmalı  
-                                          // Kural koyarız where ile hangi değerleri göndermek için
+    // Kural koyarız where ile hangi değerleri göndermek için
     public interface IEntityRepository<T> where T:class,IEntity,new()
     {
         List<T> GetAll(Expression<Func<T, bool>> filter = null);

@@ -27,7 +27,8 @@ namespace Business.Concrete
             _categoryService = categoryService;
         }
 
-
+        //Claim
+        //[SecuredOperation("product.add")]
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
@@ -40,7 +41,6 @@ namespace Business.Concrete
             }
             _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
-
         }
 
         public IDataResult<List<Product>> GetAll()
