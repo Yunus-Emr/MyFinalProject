@@ -4,6 +4,9 @@ using Autofac.Extensions.DependencyInjection;
 using Business.Abstract;
 using Business.Concrete;
 using Business.DependencyResolvers.Autofac;
+using Core.DependencyResolvers;
+using Core.Extensions;
+using Core.Utilities.IoC;
 using Core.Utilities.Security.Encryption;
 using Core.Utilities.Security.JWT;
 using DataAccess.Abstract;
@@ -26,12 +29,7 @@ namespace WebAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-          
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowOrigin",
-                    builder => builder.WithOrigins("http://localhost:3000"));
-            });
+            builder.Services.AddCors();
 
             var tokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
@@ -51,6 +49,11 @@ namespace WebAPI
                 });
             builder.Host.UseServiceProviderFactory(Services => new AutofacServiceProviderFactory()).ConfigureContainer<ContainerBuilder>(builder => { builder.RegisterModule(new AutofacBusinessModule()); });
 
+            builder.Services.AddDependencyResolvers(new ICoreModule[]//Sadece core modulü deðil baþka moduller de kullanabilmek için yazdýk.
+            {
+                new CoreModule()
+            }); ;
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -60,6 +63,7 @@ namespace WebAPI
                 app.UseSwaggerUI();
             }
 
+            app.UseCors(builder=>builder.WithOrigins("http://localhost:4200").AllowAnyHeader());
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
